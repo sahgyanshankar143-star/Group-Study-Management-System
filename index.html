@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GroDex - Group Study Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="sb-overlay" id="sbOverlay" onclick="closeSB()"></div>
+
+<!-- 
+     AUTH SCREEN
+ -->
+<div id="authScreen">
+  <div class="auth-card" id="authCard">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon">GD</div>
+      <div class="auth-logo-name">GroDex</div>
+      <div class="auth-logo-sub">Study smarter together.</div>
+    </div>
+
+    <!--  STEP INDICATOR  -->
+    <div class="progress-steps" id="stepIndicator" style="display:none;">
+      <div class="step"><div class="step-dot active" id="sd1">1</div></div>
+      <div class="step"><div class="step-line" id="sl1"></div><div class="step-dot" id="sd2">2</div></div>
+      <div class="step"><div class="step-line" id="sl2"></div><div class="step-dot" id="sd3">3</div></div>
+    </div>
+
+    <!--  AUTH TABS  -->
+    <div class="auth-tabs" id="authTabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Sign In</button>
+      <button class="auth-tab" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!--  LOGIN  -->
+    <div class="auth-screen active" id="screen-login">
+      <div class="auth-error" id="loginErr"></div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <div class="input-wrap">
+          <span class="input-icon"></span>
+          <input type="email" class="form-input has-icon" id="li-email" placeholder="you@example.com" onkeypress="if(event.key==='Enter')doLogin()">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon"></span>
+          <input type="password" class="form-input has-icon has-eye" id="li-pass" placeholder="Your password" onkeypress="if(event.key==='Enter')doLogin()">
+          <span class="input-eye" onclick="toggleEye('li-pass',this)"></span>
+        </div>
+      </div>
+      <div style="text-align:right;margin-bottom:16px;margin-top:-8px;">
+        <a style="font-size:13px;color:var(--accent);cursor:pointer;" onclick="showForgot()">Forgot password?</a>
+      </div>
+      <button class="auth-btn" onclick="doLogin()">Sign In</button>
+      <div class="auth-link">New here? <a onclick="switchTab('register')">Create an account</a></div>
+    </div>
+
+    <!--  REGISTER STEP 1: ROLE  -->
+    <div class="auth-screen" id="screen-reg1">
+      <div style="font-size:14px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:6px;">Choose your role</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:16px;">Admins manage the group. Members study & collaborate.</div>
+      <div class="role-selector">
+        <div class="role-opt sel" id="ro-admin" onclick="selRegRole('admin')">
+          <div class="role-opt-icon"></div>
+          <div class="role-opt-name">Admin</div>
+          <div class="role-opt-desc">Create & manage the group</div>
+        </div>
+        <div class="role-opt" id="ro-member" onclick="selRegRole('member')">
+          <div class="role-opt-icon"></div>
+          <div class="role-opt-name">Member</div>
+          <div class="role-opt-desc">Join & collaborate</div>
+        </div>
+      </div>
+      <div id="memberCodeWrap" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Group Code <span style="color:var(--accent3)">*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon"></span>
+            <input type="text" class="form-input has-icon" id="reg-code" placeholder="Enter group code from admin">
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:5px;">Ask your admin for the group code</div>
+        </div>
+      </div>
+      <button class="auth-btn" onclick="regStep1Next()">Continue</button>
+      <div class="auth-link"><a onclick="switchTab('login')">Back to Sign In</a></div>
+    </div>
+
+    <!--  REGISTER STEP 2: DETAILS  -->
+    <div class="auth-screen" id="screen-reg2">
+      <div class="auth-error" id="regErr"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name <span style="color:var(--accent3)">*</span></label>
+          <div class="input-wrap"><span class="input-icon"></span><input type="text" class="form-input has-icon" id="reg-name" placeholder="Your full name"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Username <span style="color:var(--accent3)">*</span></label>
+          <div class="input-wrap"><span class="input-icon">@</span><input type="text" class="form-input has-icon" id="reg-username" placeholder="username"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address <span style="color:var(--accent3)">*</span></label>
+        <div class="input-wrap"><span class="input-icon"></span><input type="email" class="form-input has-icon" id="reg-email" placeholder="you@example.com"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password <span style="color:var(--accent3)">*</span></label>
+        <div class="input-wrap">
+          <span class="input-icon"></span>
+          <input type="password" class="form-input has-icon has-eye" id="reg-pass" placeholder="Min 6 characters" oninput="checkStrength(this.value)">
+          <span class="input-eye" onclick="toggleEye('reg-pass',this)"></span>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="strFill" style="width:0%"></div></div>
+        <div class="strength-text" id="strText"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Confirm Password <span style="color:var(--accent3)">*</span></label>
+        <div class="input-wrap"><span class="input-icon"></span><input type="password" class="form-input has-icon has-eye" id="reg-pass2" placeholder="Repeat password"><span class="input-eye" onclick="toggleEye('reg-pass2',this)"></span></div>
+      </div>
+      <div id="adminGroupWrap">
+        <div class="form-group">
+          <label class="form-label">Group Name <span style="color:var(--accent3)">*</span></label>
+          <div class="input-wrap"><span class="input-icon"></span><input type="text" class="form-input has-icon" id="reg-group" placeholder="e.g. CS Final Year 2026"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Group Subjects <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;">(optional  you can add more later)</span></label>
+          <div style="display:flex;gap:8px;margin-bottom:8px;">
+            <input type="text" class="form-input" id="reg-sub-name" placeholder="Subject name e.g. Physics" style="flex:1;" onkeypress="if(event.key==='Enter'){event.preventDefault();addRegSubject();}">
+            <input type="text" class="form-input" id="reg-sub-emoji" placeholder="" maxlength="2" style="width:52px;text-align:center;font-size:17px;">
+            <button type="button" class="btn btn-primary btn-sm" onclick="addRegSubject()" style="white-space:nowrap;">+ Add</button>
+          </div>
+          <div id="reg-subjects-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px;"></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;">Default subjects (CS, Math, Science, English) are always included.</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject Specialty</label>
+        <select class="form-select" id="reg-spec">
+          <option value="cs"> CS / Algorithms</option>
+          <option value="math"> Mathematics</option>
+          <option value="science"> Science</option>
+          <option value="english"> English</option>
+          <option value="all"> All Subjects</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" style="flex:1;" onclick="regBack()"> Back</button>
+        <button class="auth-btn" style="flex:2;margin-top:0;" onclick="doRegister()">Create Account </button>
+      </div>
+    </div>
+
+    <!--  REGISTER STEP 3: SUCCESS  -->
+    <div class="auth-screen" id="screen-reg3">
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:56px;margin-bottom:16px;"></div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:8px;">Account Created!</div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:20px;" id="reg3Msg"></div>
+        <div id="groupCodeBox" style="display:none;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px;">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Your Group Code</div>
+          <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);letter-spacing:6px;" id="groupCodeDisplay"></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:6px;">Share this with members to join your group</div>
+        </div>
+        <button class="auth-btn" onclick="goToLogin()">Sign In Now</button>
+      </div>
+    </div>
+
+    <!--  FORGOT PASSWORD  -->
+    <div class="auth-screen" id="screen-forgot">
+      <div class="back-link" onclick="showLogin()">Back to Sign In</div>
+      <div style="font-size:15px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:6px;">Reset Password</div>
+      <div style="font-size:13px;color:var(--text2);margin-bottom:18px;">Enter your email to receive a reset code.</div>
+      <div class="auth-error" id="fpErr"></div>
+      <div class="auth-success" id="fpOk"></div>
+      <div class="form-group" id="fpEmailWrap">
+        <label class="form-label">Email Address</label>
+        <div class="input-wrap"><span class="input-icon"></span><input type="email" class="form-input has-icon" id="fp-email" placeholder="you@example.com"></div>
+      </div>
+      <div id="fpOtpWrap" style="display:none;">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:12px;">Enter the 6-digit code sent to your email</div>
+        <div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--accent2);" id="fpOtpHint"></div>
+        <div class="otp-grid">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,0)">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,1)">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,2)">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,3)">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,4)">
+          <input type="text" class="otp-input" maxlength="1" oninput="otpNav(this,5)">
+        </div>
+      </div>
+      <div id="fpNewPassWrap" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <div class="input-wrap"><span class="input-icon"></span><input type="password" class="form-input has-icon has-eye" id="fp-newpass" placeholder="New password (min 6 chars)"><span class="input-eye" onclick="toggleEye('fp-newpass',this)"></span></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm New Password</label>
+          <div class="input-wrap"><span class="input-icon"></span><input type="password" class="form-input has-icon has-eye" id="fp-newpass2" placeholder="Confirm password"><span class="input-eye" onclick="toggleEye('fp-newpass2',this)"></span></div>
+        </div>
+      </div>
+      <button class="auth-btn" id="fpBtn" onclick="fpNext()">Send Reset Code</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- 
+     APP SHELL
+ -->
+<div id="appShell">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-wrap">
+      <div class="logo-row"><div class="logo-ic">GD</div><div class="logo-tx">GroDex</div></div>
+      <div class="logo-group" id="groupNameSB">Group Study</div>
+    </div>
+    <div class="nav-grp">Main Menu</div>
+    <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-ic"></span>Dashboard</div>
+    <div class="nav-item" onclick="showPage('tasks')"><span class="nav-ic"></span>Tasks<span class="nav-badge" id="taskBadge">0</span></div>
+    <div class="nav-item" onclick="showPage('members')"><span class="nav-ic"></span>Members</div>
+    <div class="nav-item" onclick="showPage('schedule')"><span class="nav-ic"></span>Schedule</div>
+    <div class="nav-item" onclick="showPage('progress')"><span class="nav-ic"></span>Progress</div>
+    <div class="nav-grp">Workspace</div>
+    <div class="nav-item" onclick="showPage('announcements')"><span class="nav-ic"></span>Announcements<span class="nav-badge" style="background:var(--accent3)" id="annBadge">0</span></div>
+    <div class="nav-item" onclick="showPage('resources')"><span class="nav-ic"></span>Resources</div>
+    <div class="nav-item" id="navSubjects" onclick="openSubjectsModal()"><span class="nav-ic"></span>Subjects</div>
+    <div class="sb-foot">
+      <div class="profile-card">
+        <div class="av" id="sbAv" style="width:36px;height:36px;font-size:14px;background:var(--accent)">A</div>
+        <div style="flex:1;min-width:0;"><div class="pname" id="sbName">User</div><div class="prole" id="sbRole">Member</div></div>
+        <span style="cursor:pointer;font-size:15px;" onclick="doLogout()" title="Logout"></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="burger" onclick="toggleSB()"></button>
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-actions">
+        <div class="search-wrap"><span class="search-ic"></span><input type="text" placeholder="Search..." id="searchInput" oninput="handleSearch()"></div>
+        <button class="btn btn-primary btn-sm" id="topBtn" onclick="openAddTaskModal()">+ Add Task</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="announce-card welcome-hero">
+          <div class="welcome-badge">GD</div>
+          <div class="welcome-copy">
+            <div class="welcome-kicker">Your smart study hub</div>
+            <div class="welcome-title" id="dashAnnTitle">Welcome to GroDex!</div>
+            <div class="welcome-sub-wrap">
+              <div class="welcome-sub-track">
+                <span class="welcome-sub" id="dashAnnMsg">Stay organized, collaborate better, and ace your exams together.</span>
+                <span class="welcome-sub" aria-hidden="true">Stay organized, collaborate better, and ace your exams together.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card sc-done"><div class="stat-num" id="sd-done">0</div><div class="stat-label">Completed</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-ip"><div class="stat-num" id="sd-ip">0</div><div class="stat-label">In Progress</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-up"><div class="stat-num" id="sd-up">0</div><div class="stat-label">Upcoming</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-mem"><div class="stat-num" id="sd-mem">0</div><div class="stat-label">Members</div><div class="stat-icon"></div></div>
+        </div>
+        <div class="prog-sec">
+          <div class="panel">
+            <div class="p-title"> Overall Progress</div>
+            <div style="font-family:'Syne',sans-serif;font-size:34px;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;" id="overallPct">0%</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:3px;">of all tasks completed</div>
+            <div class="bigpbar"><div class="bigpfill" id="bigBar" style="width:0%"></div></div>
+            <div style="margin-top:16px;font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:9px;">By Subject</div>
+            <div id="subjectProg"></div>
+          </div>
+          <div class="panel">
+            <div class="p-title"> Recent Activity</div>
+            <div id="actList"><div class="act-item"><div class="act-dot" style="background:var(--accent2)"></div><div><div class="act-txt">Group created  welcome!</div><div class="act-time">Just now</div></div></div></div>
+          </div>
+        </div>
+        <div class="section-head"><div class="sec-title"><span></span>Active Tasks</div><button class="btn btn-ghost btn-sm" onclick="showPage('tasks')">View All </button></div>
+        <div class="kanban" id="dashKanban"></div>
+      </div>
+
+      <!-- TASKS -->
+      <div class="page" id="page-tasks">
+        <div class="section-head">
+          <div class="sec-title"><span></span>Task Board</div>
+          <div style="display:flex;gap:7px;">
+            <button class="btn btn-ghost btn-sm" onclick="filterTasks('all')" id="f-all" style="border-color:var(--accent)">All</button>
+            <button class="btn btn-ghost btn-sm" onclick="filterTasks('mine')" id="f-mine">Mine</button>
+            <button class="btn btn-primary btn-sm" onclick="openAddTaskModal()">+ Add Task</button>
+          </div>
+        </div>
+        <div class="kanban" id="fullKanban"></div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="page" id="page-members">
+        <div class="section-head">
+          <div class="sec-title"><span></span>Team Members</div>
+          <div style="display:flex;gap:7px;align-items:center;">
+            <div id="groupCodeShow" style="font-size:12px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;display:none;">Code: <strong id="gcDisplay" style="color:var(--accent);letter-spacing:2px;"></strong></div>
+            <button class="btn btn-primary btn-sm" id="addMemberBtn" onclick="openAddMemberModal()" style="display:none;">+ Add Member</button>
+          </div>
+        </div>
+        <div class="members-grid" id="membersGrid"></div>
+      </div>
+
+      <!-- SCHEDULE -->
+      <div class="page" id="page-schedule">
+        <div class="section-head">
+          <div class="sec-title"><span></span>Weekly Schedule</div>
+          <button class="btn btn-primary btn-sm" id="addSessBtn" onclick="openModal('sessionModal')" style="display:none;">+ Add Session</button>
+        </div>
+        <div class="sched-grid" id="schedGrid"></div>
+        <div class="panel"><div class="p-title"> Upcoming Deadlines</div><div id="deadlinesList"></div></div>
+      </div>
+
+      <!-- PROGRESS -->
+      <div class="page" id="page-progress">
+        <div class="section-head"><div class="sec-title"><span></span>Analytics</div></div>
+        <div class="stats-grid">
+          <div class="stat-card sc-done"><div class="stat-num" id="pd-done">0</div><div class="stat-label">Done</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-ip"><div class="stat-num" id="pd-ip">0</div><div class="stat-label">In Progress</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-up"><div class="stat-num" id="pd-up">0</div><div class="stat-label">Upcoming</div><div class="stat-icon"></div></div>
+          <div class="stat-card sc-mem"><div class="stat-num" id="pd-rev">0</div><div class="stat-label">Review</div><div class="stat-icon"></div></div>
+        </div>
+        <div class="prog-sec">
+          <div class="panel"><div class="p-title"> Leaderboard</div><div id="leaderboard"></div></div>
+          <div class="panel"><div class="p-title"> Subject Breakdown</div><div id="subBreakdown"></div></div>
+        </div>
+        <div class="panel"><div class="p-title"> All Tasks</div><div id="taskSummary"></div></div>
+      </div>
+
+      <!-- ANNOUNCEMENTS -->
+      <div class="page" id="page-announcements">
+        <div class="section-head">
+          <div class="sec-title"><span></span>Announcements</div>
+          <button class="btn btn-primary btn-sm" id="addAnnBtn" onclick="openModal('annModal')" style="display:none;">+ Post</button>
+        </div>
+        <div id="annList"></div>
+      </div>
+
+      <!-- RESOURCES -->
+      <div class="page" id="page-resources">
+        <div class="section-head">
+          <div class="sec-title"><span></span>Resources</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('resModal')">+ Add</button>
+        </div>
+        <div id="resList"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CHAT FAB -->
+<button class="chat-fab" id="chatFab" onclick="toggleChat()">AI<div class="fab-badge">AI</div></button>
+<div class="chatbox" id="chatbox">
+  <div class="chat-hd">
+    <div class="chat-av">AI</div>
+    <div style="flex:1;"><div class="bot-name">StudyBot AI</div><div class="bot-status">Powered by Gemini</div></div>
+    <button style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:15px;" onclick="toggleChat()">X</button>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="quick-ps">
+    <div class="qchip" onclick="sendQuick('Quiz me on Data Structures')"> Quiz me</div>
+    <div class="qchip" onclick="sendQuick('Give me a 3-week finals study plan')"> Study plan</div>
+    <div class="qchip" onclick="sendQuick('Explain Big O notation simply')"> Big O</div>
+    <div class="qchip" onclick="sendQuick('How to stay focused while studying')"> Focus tips</div>
+  </div>
+  <div class="chat-inp-area">
+    <input type="text" class="chat-inp" id="chatInput" placeholder="Ask StudyBot..." onkeypress="if(event.key==='Enter')sendMsg()">
+    <button class="chat-send" onclick="sendMsg()">Send</button>
+  </div>
+</div>
+
+<!--  MODALS  -->
+<!-- Task Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title" id="taskModalTitle"> Add Task</div><button class="modal-close" onclick="closeModal('taskModal')"></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editTaskId">
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-input" id="t-title" placeholder="Task title"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="t-desc" placeholder="Details..." style="resize:vertical;min-height:76px;"></textarea></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="t-status">
+            <option value="upcoming"> Upcoming</option>
+            <option value="inprogress"> In Progress</option>
+            <option value="review"> Review</option>
+            <option value="done"> Done</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Priority</label>
+          <select class="form-select" id="t-priority">
+            <option value="high"> High</option>
+            <option value="medium"> Medium</option>
+            <option value="low"> Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Subject</label>
+          <select class="form-select" id="t-subject">
+            <option value="cs"> CS/Algorithms</option>
+            <option value="math"> Mathematics</option>
+            <option value="science"> Science</option>
+            <option value="english"> English</option>
+            <option value="other"> Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Due Date</label><input type="date" class="form-input" id="t-due"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Assign To</label><select class="form-select" id="t-assign" multiple style="min-height:76px;"></select><div style="font-size:11px;color:var(--text3);margin-top:4px;">Ctrl/Cmd+click for multiple</div></div>
+      <div class="form-group"><label class="form-label">Progress: <span id="t-progval">0%</span></label><input type="range" id="t-prog" min="0" max="100" value="0" style="width:100%;accent-color:var(--accent);" oninput="document.getElementById('t-progval').textContent=this.value+'%'"></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('taskModal')">Cancel</button><button class="btn btn-primary" onclick="saveTask()">Save Task</button></div>
+  </div>
+</div>
+
+<!-- Add Member Modal (Admin) -->
+<div class="modal-overlay" id="memberModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title"> Add Member</div><button class="modal-close" onclick="closeModal('memberModal')"></button></div>
+    <div class="modal-body">
+      <div class="auth-error" id="memErr"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-input" id="m-name" placeholder="Full name"></div>
+        <div class="form-group"><label class="form-label">Username *</label><input type="text" class="form-input" id="m-user" placeholder="username"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email *</label><input type="email" class="form-input" id="m-email" placeholder="email@example.com"></div>
+        <div class="form-group"><label class="form-label">Password *</label><input type="text" class="form-input" id="m-pass" placeholder="Set a password"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Role</label><select class="form-select" id="m-role"><option value="member">Member</option><option value="admin">Admin</option></select></div>
+        <div class="form-group"><label class="form-label">Specialty</label><select class="form-select" id="m-spec"><option value="cs">CS</option><option value="math">Math</option><option value="science">Science</option><option value="english">English</option><option value="all">All</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Avatar Color</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="colorSwatches">
+          <div class="csw" data-color="linear-gradient(135deg,#7c6dfa,#00e5b0)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#7c6dfa,#00e5b0);cursor:pointer;border:3px solid var(--accent);" onclick="pickColor(this)"></div>
+          <div class="csw" data-color="linear-gradient(135deg,#ff5f7e,#ffc84a)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ff5f7e,#ffc84a);cursor:pointer;border:3px solid transparent;" onclick="pickColor(this)"></div>
+          <div class="csw" data-color="linear-gradient(135deg,#00e5b0,#81c3ff)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#00e5b0,#81c3ff);cursor:pointer;border:3px solid transparent;" onclick="pickColor(this)"></div>
+          <div class="csw" data-color="linear-gradient(135deg,#ffc84a,#ff5f7e)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#ffc84a,#ff5f7e);cursor:pointer;border:3px solid transparent;" onclick="pickColor(this)"></div>
+          <div class="csw" data-color="linear-gradient(135deg,#a855f7,#7c6dfa)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#a855f7,#7c6dfa);cursor:pointer;border:3px solid transparent;" onclick="pickColor(this)"></div>
+          <div class="csw" data-color="linear-gradient(135deg,#f97316,#ffc84a)" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#f97316,#ffc84a);cursor:pointer;border:3px solid transparent;" onclick="pickColor(this)"></div>
+        </div>
+        <input type="hidden" id="m-color" value="linear-gradient(135deg,#7c6dfa,#00e5b0)">
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('memberModal')">Cancel</button><button class="btn btn-primary" onclick="addMemberByAdmin()">Add Member</button></div>
+  </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal" style="max-width:580px;">
+    <div class="modal-hd"><div class="modal-title"> Task Details</div><button class="modal-close" onclick="closeModal('detailModal')"></button></div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-foot" id="detailFoot"></div>
+  </div>
+</div>
+
+<!-- Ann Modal -->
+<div class="modal-overlay" id="annModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title"> Post Announcement</div><button class="modal-close" onclick="closeModal('annModal')"></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="ann-title" placeholder="Title"></div>
+      <div class="form-group"><label class="form-label">Message</label><textarea class="form-textarea" id="ann-msg" placeholder="Message..." style="resize:vertical;min-height:90px;"></textarea></div>
+      <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="ann-type"><option value="info"> Info</option><option value="urgent"> Urgent</option><option value="success"> Celebration</option></select></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('annModal')">Cancel</button><button class="btn btn-primary" onclick="postAnn()">Post</button></div>
+  </div>
+</div>
+
+<!-- Res Modal -->
+<div class="modal-overlay" id="resModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title"> Add Resource</div><button class="modal-close" onclick="closeModal('resModal')"></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Name</label><input type="text" class="form-input" id="r-name" placeholder="Resource name"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="r-type"><option value="pdf"> PDF</option><option value="video"> Video</option><option value="link"> Link</option><option value="notes"> Notes</option></select></div>
+        <div class="form-group"><label class="form-label">Subject</label><select class="form-select" id="r-sub"><option value="cs">CS</option><option value="math">Math</option><option value="science">Science</option><option value="other">Other</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">URL</label><input type="text" class="form-input" id="r-url" placeholder="https://..."></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('resModal')">Cancel</button><button class="btn btn-primary" onclick="addRes()">Add</button></div>
+  </div>
+</div>
+
+<!-- Session Modal -->
+<div class="modal-overlay" id="sessionModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title"> Add Study Session</div><button class="modal-close" onclick="closeModal('sessionModal')"></button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Title</label><input type="text" class="form-input" id="ss-title" placeholder="e.g. Algo Review"></div>
+        <div class="form-group"><label class="form-label">Day</label><select class="form-select" id="ss-day"><option value="0">Monday</option><option value="1">Tuesday</option><option value="2">Wednesday</option><option value="3">Thursday</option><option value="4">Friday</option><option value="5">Saturday</option><option value="6">Sunday</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Time</label><input type="time" class="form-input" id="ss-time" value="10:00"></div>
+        <div class="form-group"><label class="form-label">Subject</label><select class="form-select" id="ss-sub"><option value="cs"> CS</option><option value="math"> Math</option><option value="science"> Science</option><option value="other"> Other</option></select></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('sessionModal')">Cancel</button><button class="btn btn-primary" onclick="addSession()">Add</button></div>
+  </div>
+</div>
+
+<!-- Subjects Modal -->
+<div class="modal-overlay" id="subjectsModal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-hd">
+      <div class="modal-title"> Manage Subjects</div>
+      <button class="modal-close" onclick="closeModal('subjectsModal')"></button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:14px;">Add custom subjects for tasks, sessions and resources. Changes apply to your whole group.</div>
+
+      <!-- Add new subject -->
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:18px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;"> Add New Subject</div>
+        <div class="form-row" style="align-items:flex-end;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Subject Name *</label>
+            <input type="text" class="form-input" id="cs-name" placeholder="e.g. Physics">
+          </div>
+          <div class="form-group" style="margin-bottom:0;max-width:90px;">
+            <label class="form-label">Emoji</label>
+            <input type="text" class="form-input" id="cs-emoji" placeholder="" maxlength="2" style="text-align:center;font-size:18px;">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px;margin-bottom:0;">
+          <label class="form-label">Color</label>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <input type="color" id="cs-color" value="#7c6dfa" style="width:40px;height:36px;border:none;border-radius:8px;cursor:pointer;background:none;padding:0;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <div style="width:24px;height:24px;border-radius:50%;background:#81c3ff;cursor:pointer;" onclick="document.getElementById('cs-color').value='#81c3ff'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#7c6dfa;cursor:pointer;" onclick="document.getElementById('cs-color').value='#7c6dfa'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#00e5b0;cursor:pointer;" onclick="document.getElementById('cs-color').value='#00e5b0'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#ffc84a;cursor:pointer;" onclick="document.getElementById('cs-color').value='#ffc84a'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#ff5f7e;cursor:pointer;" onclick="document.getElementById('cs-color').value='#ff5f7e'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#a855f7;cursor:pointer;" onclick="document.getElementById('cs-color').value='#a855f7'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#f97316;cursor:pointer;" onclick="document.getElementById('cs-color').value='#f97316'"></div>
+              <div style="width:24px;height:24px;border-radius:50%;background:#06b6d4;cursor:pointer;" onclick="document.getElementById('cs-color').value='#06b6d4'"></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-sm" style="margin-top:14px;width:100%;" onclick="addCustomSubject()">+ Add Subject</button>
+      </div>
+
+      <!-- Existing subjects -->
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Current Subjects</div>
+      <div id="subjectsList"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('subjectsModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="scripts/data-store.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/core.js"></script>
+<script src="scripts/tasks.js"></script>
+<script src="scripts/members.js"></script>
+<script src="scripts/schedule-progress.js"></script>
+<script src="scripts/workspace.js"></script>
+<script src="scripts/chat.js"></script>
+<script src="scripts/ui.js"></script>
+</body>
+</html>
+
+
